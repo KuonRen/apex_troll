@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEXトロールガチャ | Compact Edition</title>
+  <style>
+
+    :root {
+      --bg-1: #020202;
+      --bg-2: #09090b;
+      --bg-3: #140507;
+      --panel: rgba(12, 12, 14, 0.92);
+      --panel-2: rgba(18, 18, 21, 0.96);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 77, 77, 0.34);
+      --text: #f5f7fb;
+      --muted: #989da8;
+      --accent: #b70f2a;
+      --accent-2: #ff4d4d;
+      --accent-soft: rgba(183, 15, 42, 0.16);
+      --accent-glow: rgba(255, 77, 77, 0.22);
+      --warning: #ff9a3d;
+      --success: #ff7b7b;
+      --shadow: 0 24px 64px rgba(0, 0, 0, 0.56);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 77, 77, 0.72) rgba(255, 255, 255, 0.06);
+    }
+
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: linear-gradient(180deg, #700b19, #ff4d4d);
+      border: 2px solid rgba(6, 6, 7, 0.95);
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #980f22, #ff7171);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 12%, rgba(255, 77, 77, 0.17), transparent 24%),
+        radial-gradient(circle at 88% 0%, rgba(183, 15, 42, 0.18), transparent 22%),
+        linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 58%, var(--bg-3) 100%);
+      height: 100svh;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+        linear-gradient(120deg, transparent 0 64%, rgba(255, 77, 77, 0.08) 64% 65%, transparent 65% 100%);
+      background-size: 40px 40px, 40px 40px, cover;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 96%);
+    }
+
+    .app {
+      width: min(1420px, 100%);
+      height: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .hero,
+    .panel,
+    .results-panel {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .hero::before,
+    .panel::before,
+    .results-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+      opacity: 0.95;
+      pointer-events: none;
+    }
+
+    .hero::after,
+    .panel::after,
+    .results-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at top right, rgba(255, 77, 77, 0.12), transparent 28%),
+        linear-gradient(135deg, rgba(255, 77, 77, 0.06), transparent 22%);
+      opacity: 0.8;
+    }
+
+    .hero {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      min-height: 82px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      margin-bottom: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 77, 77, 0.32);
+      background: rgba(183, 15, 42, 0.16);
+      color: #ffd2d2;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 40px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      text-shadow: 0 0 18px rgba(255, 77, 77, 0.12);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .panel,
+    .results-panel {
+      padding: 16px;
+      min-height: 0;
+    }
+
+    .controls-panel,
+    .results-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel h2,
+    .results-panel h2 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+    }
+
+    .input-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .input-card {
+      padding: 10px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .input-card label {
+      display: block;
+      margin-bottom: 6px;
+      color: #c5c8d2;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(5, 5, 7, 0.94);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 13px;
+      outline: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+      font-size: 15px;
+    }
+
+    input::placeholder {
+      color: #727886;
+    }
+
+    input:focus {
+      border-color: rgba(255, 77, 77, 0.62);
+      box-shadow: 0 0 0 4px rgba(183, 15, 42, 0.16), 0 0 18px rgba(255, 77, 77, 0.12);
+      transform: translateY(-1px);
+      background: rgba(8, 8, 10, 0.98);
+    }
+
+    .actions {
+      display: grid;
+      gap: 8px;
+    }
+
+    button {
+      position: relative;
+      overflow: hidden;
+      border: 0;
+      cursor: pointer;
+      color: white;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease, border-color 180ms ease;
+    }
+
+    button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(120deg, transparent 25%, rgba(255, 255, 255, 0.12) 50%, transparent 75%);
+      transform: translateX(-120%);
+      transition: transform 260ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:hover::before {
+      transform: translateX(120%);
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #8f0e22, #ff4d4d);
+      box-shadow: 0 16px 30px rgba(183, 15, 42, 0.34);
+    }
+
+    .ghost-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 77, 77, 0.18);
+      color: var(--text);
+    }
+
+    .ghost-btn:hover {
+      box-shadow: 0 10px 24px rgba(183, 15, 42, 0.14);
+      border-color: rgba(255, 77, 77, 0.32);
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .hint code {
+      color: #ffd7d7;
+      background: rgba(255, 77, 77, 0.08);
+      border: 1px solid rgba(255, 77, 77, 0.14);
+      border-radius: 8px;
+      padding: 2px 6px;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 10px;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    .result-card {
+      position: relative;
+      overflow: hidden;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      animation: rise 360ms ease;
+    }
+
+    .result-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: 0.96;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .player-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    .legend {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+      background: rgba(255, 77, 77, 0.09);
+      border: 1px solid rgba(255, 77, 77, 0.18);
+      color: #ffb1b1;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .mission {
+      font-size: clamp(16px, 1.3vw, 21px);
+      line-height: 1.35;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .meta-chip {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .placeholder {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed rgba(255, 77, 77, 0.2);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 20px;
+    }
+
+    .rarity-ultra { color: #ff9c9c; }
+    .rarity-super { color: #ff4d4d; }
+    .rarity-rare { color: #ff9a3d; }
+    .rarity-normal { color: #d2d5dc; }
+
+    .rarity-ultra .badge { background: rgba(255, 156, 156, 0.12); border-color: rgba(255, 156, 156, 0.26); }
+    .rarity-super .badge { background: rgba(255, 77, 77, 0.12); border-color: rgba(255, 77, 77, 0.24); }
+    .rarity-rare .badge { background: rgba(255, 154, 61, 0.12); border-color: rgba(255, 154, 61, 0.22); }
+    .rarity-normal .badge { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.12); }
+
+    body.flash {
+      animation: ultraPulse 500ms ease 3;
+    }
+
+    @keyframes ultraPulse {
+      0% { filter: saturate(1) brightness(1); }
+      50% { filter: saturate(1.22) brightness(1.05); }
+      100% { filter: saturate(1) brightness(1); }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        height: auto;
+        min-height: 100svh;
+        overflow: auto;
+      }
+
+      .app {
+        height: auto;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">APEX Troll Gacha / Compact Edition</span>
+        <h1>APEXトロールガチャ</h1>
+      </div>
+    </section>
+
+    <section class="layout">
+      <section class="panel controls-panel">
+        <h2>プレイヤー設定</h2>
+
+        <div id="inputs" class="input-grid">
+          <div class="input-card">
+            <label for="player1">PLAYER 1</label>
+            <input id="player1" placeholder="プレイヤー1">
+          </div>
+          <div class="input-card">
+            <label for="player2">PLAYER 2</label>
+            <input id="player2" placeholder="プレイヤー2">
+          </div>
+          <div class="input-card">
+            <label for="player3">PLAYER 3</label>
+            <input id="player3" placeholder="プレイヤー3">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary-btn" onclick="draw()">ガチャを回す</button>
+          <button class="ghost-btn" onclick="fillRandomNames()">名前をランダム入力</button>
+          <button class="ghost-btn" onclick="clearNames()">入力をクリア</button>
+        </div>
+
+        <p class="hint">
+          命名ルールコメント: <code>camelCase</code> をJS関数・変数に、DOMのIDは既存互換のため <code>inputs</code> / <code>result</code> を維持。
+          抽選結果にはレア度と個別排出率を表示します。
+        </p>
+      </section>
+
+      <section class="results-panel">
+        <h2>抽選結果</h2>
+        <div id="result" class="result-list">
+          <div class="placeholder">
+            <div>
+              <strong>まだ抽選されていません。</strong><br>
+              「ガチャを回す」を押すと、プレイヤーごとにレジェンドとお題を表示します。
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    /*
+      Naming convention memo
+      - 既存互換のため DOM id: inputs / result を維持
+      - 新規識別子は役割ベースの camelCase
+      - 名前保存系は playerName + 役割名 で統一
+      - 個別確率は item.weight で管理し、最終確率は rarity.rate × item.weight / tierWeightTotal
+    */
+
+    const legends = [
+      "ブラッドハウンド",
+      "ジブラルタル",
+      "ライフライン",
+      "パスファインダー",
+      "レイス",
+      "バンガロール",
+      "コースティック",
+      "ミラージュ",
+      "オクタン",
+      "ワットソン",
+      "クリプト",
+      "レヴナント",
+      "ローバ",
+      "ランパート",
+      "ホライゾン",
+      "ヒューズ",
+      "ヴァルキリー",
+      "シア",
+      "アッシュ",
+      "マッドマギー",
+      "ニューキャッスル",
+      "ヴァンテージ",
+      "カタリスト",
+      "スパロー",
+      "オルター"
+    ];
+
+    const basePools = {
+      ultra: [
+        "たまに嘘言う",
+        "移動時はジャンプ！常にジャンプ！",
+        "【ナベアツ】キル数が２の倍数と２のつく数字の時アホになる",
+        "ずっと何か食いながら喋る。食べ物なくてもモグモグしてください",
+        "マウスを逆向きにもってプレイ",
+        "会話が絶対に噛みわわない縛り",
+        "使用キャラクターなりきり",
+        "倒されたら早口で言い訳",
+        "味方が死ぬ度に『大好きだったよ....』と言う",
+        "喋り方メス◯キ縛り",
+        "自分がラスト1人になったら好きな曲を歌いながらプレイする",
+        "英語禁止。英語を話したら武器一個捨てる",
+        "試合に負けたら一発ギャグ",
+        "返事『うゆ』",
+        "マウスを左手で、キーボードを右手で操作",
+        "マウス感度最低値",
+        "感度を0.01にする",
+        "感度を10にする",
+        "音禁止（ゲーム音＋VCが0）自分の声は味方に聞こえるように！",
+        "IGLを全チャ（テキスト）でする",
+        "10秒に1回必ず発砲しないといけない",
+        "1回の射撃で1マガジン撃ちきる",
+        "ウルト使用時にセリフを全力vc",
+        "ゲーム音なし！",
+        "降下終了後開始後10秒不動",
+        "ワンタップしか狙ってはいけない（スナ・スコ無し縛り）",
+        "全力でトロールする。トロールの限りを尽くせ。",
+        "報告やコールで嘘つく",
+        "止まるな！動け！試合中に止まるの禁止",
+        "武器禁止スキルオンリー",
+        "移動時は後ろ向きで進む",
+        "VC吐息厨",
+        "VC報告『あいうえお』のみ",
+        "お嬢様言葉縛り",
+        "どんなボケにもツッコミを入れる",
+        "キルしたら好きな歌を歌う",
+        "試合中、一番低い声で話す。",
+        "ラッパー化",
+        "倒された後にVCで味方を実況",
+        "全力でメンヘラになる",
+        "報告はすべて吐息ボイス",
+        "死んでる間味方を誉めまくる",
+        "発言が厨二病になる",
+        "立ちながらプレイする",
+        "自分で実況解説プレイ",
+        "話し方を2ちゃんねらーに『クレメンス』『ワイ』『ンゴ』",
+        "語尾『だなも』",
+        "語尾『でやんす』",
+        "音楽を爆音で再生しながらプレイする",
+        "マウス感度3.55",
+        "感度をいつもの3倍にする",
+      ],
+      super: [
+        "IGLを全力でする",
+        "10秒に1回必ず発砲しないといけない",
+        "1回の射撃で1マガジン撃ちきる",
+        "ウルト使用時にセリフを全力vc",
+        "ゲーム音なし！",
+        "降下終了後10秒不動",
+        "ワンタップしか狙ってはいけない",
+        "全力でトロールする。トロールの限りを尽くせ。",
+        "報告やコールで嘘つく",
+        "止まるな！動け！試合中止まるの禁止",
+        "武器禁止スキルオンリー",
+        "移動時は後ろ向きで進む",
+        "VC吐息厨",
+        "VC報告『あいうえお』のみ",
+        "お嬢様言葉縛り",
+        "どんなボケにもツッコミを入れる",
+        "キルしたら好きな歌を歌う",
+        "ラウンド中、一番低い声で話す。",
+        "ラッパー化",
+        "倒された後にVCで味方を実況",
+        "全力でメンヘラになる",
+        "報告はすべて吐息ボイス",
+        "死んでる間味方を誉めまくる",
+        "発言が厨二病になる",
+        "立ちながらプレイする",
+        "自分で実況解説プレイ",
+        "話し方を2ちゃんねらーに『クレメンス』『ワイ』『ンゴ』",
+        "語尾『だなも』",
+        "語尾『でやんす』",
+        "音楽を爆音で再生しながらプレイする",
+        "キーボードを上下逆にする（スペースが上）",
+        "マウス感度3.55",
+        "感度をいつもの3倍にする",
+      ],
+      rare: [
+        "1キル後、空に1発撃つ",
+        "Wキーから手を放さない",
+        "スナイパーorアキンボのみ",
+        "キルするたびにサブ武器メイン武器持ち替え",
+        "ジャンプするたびに1回転",
+        "ウィングマンorG7スカウト縛り",
+        "モザンビーク縛り",
+        "マスティフ縛り",
+        "30-30orトリプルテイク縛り",
+        "リロードボタン使用禁止",
+        "一生味方にくっついて行動する",
+        "一発撃つごとにリロードをする",
+        "味方1人がダウンするまで発砲禁止",
+        "味方から常に離れて行動する",
+        "常にしゃがみ",
+        "溜まった瞬間ウルト即使用縛り",
+        "走り撃ちonly",
+        "1ダウンにつき台パン",
+        "デスしたらバブる",
+        "ダウンするごとに自分の豆知識を言う",
+        "マイクと0距離でVC",
+        "マッチ最後のキルを取ったら決め台詞",
+        "死ぬたび言い訳する",
+        "考えるの禁止、アホになれ！",
+        "語尾『にゃん』",
+        "語尾『にょん』",
+        "語尾『ポヨ』",
+        "イヤホン左右逆につける",
+        "マウス感度50%増",
+        "マウス感度50%減",
+        "常にカニ歩き",
+        "感度を1高くする",
+      ],
+      normal: [
+        "ADS禁止",
+        "マシンガン（LMG)縛り",
+        "ハンドガン縛り",
+        "ショットガン縛り",
+        "スキル使用禁止",
+        "スナイパー専",
+        "殴り縛り",
+        "アーマー禁止",
+        "アサルトライフル禁止",
+        "感度を誕生日にする",
+        "見つけた武器絶対拾う",
+        "走り撃ち縛り",
+        "VC英語のみ",
+        "デスしたら次ラウンドまでスクワット",
+        "常にしゃべり続ける",
+        "敬語禁止",
+        "敬語縛り",
+        "英語禁止",
+        "コテコテ関西弁縛り",
+        "ライトアモ縛り",
+        "ヘビーアモ縛り",
+        "エネルギーアモ縛り",
+        "スナイパーアモ縛り",
+        "ショットガンアモ縛り"
+      ]
+    };
+
+    const weightOverrides = {
+      ultra: {},
+      super: {},
+      rare: {},
+      normal: {}
+    };
+
+    const rarityConfigs = [
+      { key: "ultra", label: "💎 ウルトラレア", className: "rarity-ultra", rate: 0.05 },
+      { key: "super", label: "🔥 スーパーレア", className: "rarity-super", rate: 0.3 },
+      { key: "rare", label: "✨ レア", className: "rarity-rare", rate: 0.5 },
+      { key: "normal", label: "⚪ ノーマル", className: "rarity-normal", rate: 0.15 }
+    ];
+
+    const sampleNames = ["レン", "ノヴァ", "ルーク", "カイ", "ミナト", "アオ", "ハル", "レイ"];
+
+    const playerNameStorageKey = "apexTrollGacha.playerNames";
+
+    function buildItems(poolKey) {
+      return basePools[poolKey].map((text) => ({
+        text,
+        weight: weightOverrides[poolKey][text] ?? 1
+      }));
+    }
+
+    function getPreparedPools() {
+      return rarityConfigs.map((rarity) => {
+        const items = buildItems(rarity.key);
+        const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+        return {
+          ...rarity,
+          items: items.map((item) => ({
+            ...item,
+            finalRate: rarity.rate * (item.weight / totalWeight)
+          }))
+        };
+      });
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function pickWeighted(items) {
+      const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+      let threshold = Math.random() * totalWeight;
+
+      for (const item of items) {
+        threshold -= item.weight;
+        if (threshold <= 0) return item;
+      }
+
+      return items[items.length - 1];
+    }
+
+    function pickRarity(pools) {
+      const roll = Math.random();
+      let cumulative = 0;
+      for (const rarity of pools) {
+        cumulative += rarity.rate;
+        if (roll < cumulative) return rarity;
+      }
+      return pools[pools.length - 1];
+    }
+
+    function formatPercent(value) {
+      return `${(value * 100).toFixed(value < 0.01 ? 3 : 2)}%`;
+    }
+
+    function getPlayerNameInputs() {
+      return [...document.querySelectorAll("#inputs input")];
+    }
+
+    function savePlayerNames() {
+      try {
+        const playerNames = getPlayerNameInputs().map((input) => input.value);
+        localStorage.setItem(playerNameStorageKey, JSON.stringify(playerNames));
+      } catch (error) {
+        console.warn("Failed to save player names.", error);
+      }
+    }
+
+    function loadPlayerNames() {
+      try {
+        const savedValue = localStorage.getItem(playerNameStorageKey);
+        if (!savedValue) return;
+
+        const playerNames = JSON.parse(savedValue);
+        if (!Array.isArray(playerNames)) return;
+
+        getPlayerNameInputs().forEach((input, index) => {
+          input.value = typeof playerNames[index] === "string" ? playerNames[index] : "";
+        });
+      } catch (error) {
+        console.warn("Failed to load player names.", error);
+      }
+    }
+
+    function initPlayerNamePersistence() {
+      loadPlayerNames();
+      getPlayerNameInputs().forEach((input) => {
+        input.addEventListener("input", savePlayerNames);
+      });
+    }
+
+    function clearNames() {
+      getPlayerNameInputs().forEach((input) => {
+        input.value = "";
+      });
+      savePlayerNames();
+    }
+
+    function fillRandomNames() {
+      const inputs = getPlayerNameInputs();
+      const names = shuffle([...sampleNames]);
+      inputs.forEach((input, index) => {
+        input.value = names[index] ?? `プレイヤー${index + 1}`;
+      });
+    }
+
+    function draw() {
+      const inputs = document.querySelectorAll("#inputs input");
+      const result = document.getElementById("result");
+      const preparedPools = getPreparedPools();
+      const shuffledLegends = shuffle([...legends]);
+
+      document.body.classList.remove("flash");
+
+      const cards = [...inputs].map((input, index) => {
+        const playerName = input.value.trim() || input.placeholder || `プレイヤー${index + 1}`;
+        const legend = shuffledLegends[index % shuffledLegends.length];
+        const rarity = pickRarity(preparedPools);
+        const mission = pickWeighted(rarity.items);
+
+        if (rarity.key === "ultra") {
+          document.body.classList.add("flash");
+        }
+
+        return `
+          <article class="result-card ${rarity.className}">
+            <div class="result-head">
+              <div class="player-name">${playerName}</div>
+              <span class="badge">${rarity.label}</span>
+            </div>
+            <div class="legend">使用レジェンド：${legend}</div>
+            <div class="mission">${mission.text}</div>
+            <div class="meta">
+              <span class="meta-chip">個別排出率: ${formatPercent(mission.finalRate)}</span>
+              <span class="meta-chip">レア度排出率: ${formatPercent(rarity.rate)}</span>
+              <span class="meta-chip">weight: ${mission.weight}</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      result.innerHTML = cards;
+    }
+
+    initPlayerNamePersistence();
+  </script>
+</body>
+</html>
